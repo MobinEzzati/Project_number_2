@@ -116,21 +116,30 @@ db_inc_emp
 
 fviz_cluster(db_inc_emp,texascases_inc_emp_scaled,geom="point")
 
-#ggplot(texascases_inc_emp_scaled |> add_column(cluster=factor(db_inc_emp$cluster)),
-#       aes(x,y,color=cluster)) + geom_point()
-
-
-
 
 #Subset 2
 
-kNNdistplot(texascases_dem_edu_scaled,k=4)
+kNNdistplot(texascases_dem_edu_scaled,k=9)
 abline(h=.75,lty=2,col="red")
 
-db_inc_emp <- dbscan(texascases_dem_edu_scaled,eps=.75,minPts=10)
-db_inc_emp
+db_dem_edu <- dbscan(texascases_dem_edu_scaled,eps=.75,minPts=10)
+db_dem_edu
 
-fviz_cluster(db_inc_emp,texascases_dem_edu_scaled,geom="point")
+fviz_cluster(db_dem_edu,texascases_dem_edu_scaled,geom="point")
+
+texascases_dem_edu_outliers <- texascases_dem_edu_scaled[db_inc_emp$cluster == 0, ]
+texascases_dem_edu_outliers
+texascases_dem_edu_cln <- texascases_dem_edu_scaled[db_inc_emp$cluster != 0, ]
+texascases_dem_edu_cln
+
+kNNdistplot(texascases_dem_edu_cln,k=20)
+abline(h=.3,lty=2,col="red")
+
+db_dem_edu_cln <- dbscan(texascases_dem_edu_cln,eps=.3,minPts=21)
+db_dem_edu_cln
+
+fviz_cluster(db_dem_edu_cln,texascases_dem_edu_cln,geom="point")
+
 
 ################################################################
 #measuring outliers
@@ -159,11 +168,52 @@ texascases_scaled_outliers
 texascases_scaled
 
 ##################################################################
+#Hierarchal Clustering
+##################################################################
 
-#build datatable with the important values
-datatable(texascases)
-str(texascases)
-datatable(texascases,filter = 'top') %>% formatRound(c(5,21,22),2) %>% formatPercentage(23)
+#Subset 1
+##########################
+
+#Set distance to variable 'd'
+d <- dist(texascases_inc_emp_scaled)
+
+hc_inc_emp <- hclust(d,method="complete")
+plot(hc_inc_emp)
+
+#build dendrogram
+fviz_dend(hc_inc_emp,k=5)
+
+#extract the different clusters and add the cluster id to the dataset
+clusters <- cutree(hc_inc_emp, k = 5)
+hc_inc_emp_complete <- texascases_inc_emp_scaled |>
+  add_column(cluster = factor(clusters))
+hc_inc_emp_complete
+
+#plot the hierarchical cluster
+fviz_cluster(list(data = texascases_inc_emp_scaled, cluster = cutree(hc_inc_emp, k = 5)), geom = "point")
+
+#Subset 2
+##########################
+
+#Set distance to variable 'd'
+d <- dist(texascases_dem_edu_scaled)
+
+hc_dem_edu <- hclust(d,method="complete")
+plot(hc_dem_edu)
+
+#build dendrogram
+fviz_dend(hc_dem_edu,k=3)
+
+#extract the different clusters and add the cluster id to the dataset
+clusters <- cutree(hc_dem_edu, k = 3)
+hc_dem_edu_complete <- texascases_dem_edu_scaled |>
+  add_column(cluster = factor(clusters))
+hc_dem_edu_complete
+
+#plot the hierarchical cluster
+fviz_cluster(list(data = texascases_dem_edu_scaled, cluster = cutree(hc_dem_edu, k = 5)), geom = "point")
+
+
 
 ###################
 #visualize on a map
@@ -190,6 +240,11 @@ ggplot(texascounties_clust,aes(long,lat)) +
   scale_fill_continuous(type="viridis") +
   labs(title="Clusters",subtitle="Only Counties Reporting 100+ Cases")
 
+##############################################
+#build datatable with the important values
+datatable(texascases)
+str(texascases)
+datatable(texascases,filter = 'top') %>% formatRound(c(5,21,22),2) %>% formatPercentage(23)
 
 
 ####################################
