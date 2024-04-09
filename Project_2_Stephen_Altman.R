@@ -108,21 +108,55 @@ sumtable(texascases,col.breaks=6,
 
 #Subset 1
 
-kNNdistplot(texascases_inc_emp_scaled,k=4)
-abline(h=.95,lty=2,col="red")
+#convert to tibble
+texascases_inc_emp <- as_tibble(texascases_inc_emp) |>
+  sample_frac()
 
-db_inc_emp <- dbscan(texascases_inc_emp_scaled,eps=.95,minPts=5)
+summary(texascases_inc_emp)
+
+#data cleaning
+ggplot(texascases_inc_emp, aes(x=x,y=y)) + geom_point()
+
+#scale the dataset
+#scale_numeric <- function(x) mutate_if(x, is.numeric, function (y) as.vector(scale(y)))
+
+texascases_inc_emp_scaled <- texascases_inc_emp |>
+  scale_numeric() |> as_tibble()
+summary(texascases_inc_emp_scaled)
+
+
+
+kNNdistplot(texascases_inc_emp_scaled,k=3)
+abline(h=.8,lty=2,col="red")
+
+db_inc_emp <- dbscan(texascases_inc_emp_scaled,eps=.8,minPts=4)
 db_inc_emp
 
 fviz_cluster(db_inc_emp,texascases_inc_emp_scaled,geom="point")
 
 
 #Subset 2
+#convert to tibble
+texascases_dem_edu <- as_tibble(texascases_dem_edu) |>
+  sample_frac()
+
+summary(texascases_dem_edu)
+
+#data cleaning
+#ggplot(texascases_dem_edu, aes(x=x,y=y)) + geom_point()
+
+#scale the dataset
+scale_numeric <- function(x) mutate_if(x, is.numeric, function (y) as.vector(scale(y)))
+
+texascases_dem_edu_scaled <- texascases_dem_edu |>
+  scale_numeric() |> as_tibble()
+summary(texascases_dem_edu_scaled)
+
 
 kNNdistplot(texascases_dem_edu_scaled,k=9)
-abline(h=.75,lty=2,col="red")
+abline(h=.9,lty=2,col="red")
 
-db_dem_edu <- dbscan(texascases_dem_edu_scaled,eps=.75,minPts=10)
+db_dem_edu <- dbscan(texascases_dem_edu_scaled,eps=.9,minPts=10)
 db_dem_edu
 
 fviz_cluster(db_dem_edu,texascases_dem_edu_scaled,geom="point")
@@ -266,7 +300,7 @@ ggplot(texascases_inc_emp, aes(x=x,y=y)) + geom_point()
 scale_numeric <- function(x) mutate_if(x, is.numeric, function (y) as.vector(scale(y)))
 
 texascases_inc_emp_scaled <- texascases_inc_emp |>
-  scale_numeric()
+  scale_numeric() |> as.tibble()
 summary(texascases_inc_emp_scaled)
 
 kNNdistplot(texascases_inc_emp_scaled,k=4)
